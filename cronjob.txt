@@ -1,1 +1,1 @@
-*/10 * * * * cd /workspaces/cd0583-project-starter-file && /usr/local/bin/python /workspaces/cd0583-project-starter-file/fullprocess.py
+*/10 * * * * /Users/santhoshkumarkotteeswaran/udacity_mlops/cd0583-project-starter-file/venv/bin/python /Users/santhoshkumarkotteeswaran/udacity_mlops/cd0583-project-starter-file/fullprocess.py

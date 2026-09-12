@@ -64,36 +64,62 @@ def execution_time():
 
 ################## Function to check dependencies
 def outdated_packages_list():
-    # Get a list of current and latest package versions
-    requirements = {}
+    # Build a table of each dependency's module name, installed version,
+    # and latest available version WITHOUT updating anything.
+    requirements = []
     with open('requirements.txt', 'r') as f:
         for line in f:
             line = line.strip()
             if not line or '==' not in line:
                 continue
             package, version = line.split('==', 1)
-            requirements[package] = version
+            requirements.append((package, version))
 
-    result = subprocess.run(
-        [sys.executable, '-m', 'pip', 'list', '--outdated', '--format=json'],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    outdated_packages = {
-        item['name']: item['latest_version']
-        for item in json.loads(result.stdout or '[]')
-    }
+    # Currently installed versions (pip list is read-only).
+    installed = {}
+    try:
+        installed_result = subprocess.run(
+            [sys.executable, '-m', 'pip', 'list', '--format=json'],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        installed = {
+            item['name'].lower(): item['version']
+            for item in json.loads(installed_result.stdout or '[]')
+        }
+    except (subprocess.CalledProcessError, ValueError):
+        installed = {}
+
+    # Latest available versions for packages pip reports as outdated.
+    outdated = {}
+    try:
+        outdated_result = subprocess.run(
+            [sys.executable, '-m', 'pip', 'list', '--outdated', '--format=json'],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        outdated = {
+            item['name'].lower(): item['latest_version']
+            for item in json.loads(outdated_result.stdout or '[]')
+        }
+    except (subprocess.CalledProcessError, ValueError):
+        outdated = {}
 
     rows = []
-    for package, current_version in requirements.items():
+    for package, pinned_version in requirements:
+        key = package.lower()
+        current_version = installed.get(key, pinned_version)
+        # If pip does not report it as outdated, the current version is latest.
+        latest_version = outdated.get(key, current_version)
         rows.append({
-            'package': package,
+            'module': package,
             'current_version': current_version,
-            'latest_version': outdated_packages.get(package, current_version),
+            'latest_version': latest_version,
         })
 
-    return pd.DataFrame(rows)
+    return pd.DataFrame(rows, columns=['module', 'current_version', 'latest_version'])
 
 
 if __name__ == '__main__':

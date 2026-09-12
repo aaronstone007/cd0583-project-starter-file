@@ -1,6 +1,9 @@
 import json
 import os
 
+import matplotlib
+matplotlib.use('Agg')  # non-interactive backend for headless plotting
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
