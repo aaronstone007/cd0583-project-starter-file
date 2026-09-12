@@ -139,7 +139,7 @@ crontab cronjob.txt     # note: this replaces your current crontab
 - Calculate summary statistics for each numeric column:
   - mean
   - median
-  - standard deviation
+  - mode
 - Calculate the percentage of NA values in each column
 - Measure execution time for:
   - data ingestion
